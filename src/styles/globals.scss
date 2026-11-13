@@ -1,0 +1,23 @@
+@use "reset";
+@use "lenis";
+
+:root {
+  // Replace with Figma color/typography tokens.
+  --color-bg: #000;
+  --color-fg: #fff;
+  // Light grey page surface shared by the sections under the hero.
+  --color-page: #ededed;
+  --font-sans: var(--font-figtree), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}

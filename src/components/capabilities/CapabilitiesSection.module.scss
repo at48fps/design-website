@@ -1,0 +1,228 @@
+@use "abstracts" as *;
+
+$ink: #1a1a1a;
+$muted: #9b9b9b;
+
+// Pinned while the pages slide; same light grey as the section above.
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // Full screen so nothing below shows while pinned.
+  min-height: 100svh;
+  padding: 1.6vw 0 2vw;
+  overflow: hidden;
+  background: var(--color-page, #ededed);
+  color: $ink;
+  text-align: center;
+}
+
+// Tab row: label — line — label — line ...
+.tabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  list-style: none;
+  align-items: center;
+  white-space: nowrap;
+  list-style: none;
+}
+
+.tabGroup {
+  display: flex;
+  align-items: center;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
+
+.tab {
+  padding: 0.4em 0;
+  font-family: var(--font-figtree), sans-serif;
+  font-weight: 400;
+  font-size: clamp(14px, 1.5vw, 28px);
+  color: $muted;
+
+  &[data-active="true"] {
+    color: $ink;
+  }
+}
+
+.line {
+  position: relative;
+  width: 7.5vw;
+  height: 1px;
+  margin: 0 1.4vw;
+  background: #c9c9c9;
+  overflow: hidden;
+}
+
+.lineFill {
+  position: absolute;
+  inset: 0;
+  background: $ink;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+// All pages share one grid cell, so the section is as tall as the tallest page.
+.panels {
+  display: grid;
+  // Clips pages sliding up under the tab row.
+  overflow: hidden;
+  margin-top: 0.5vw;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
+.panel {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  // Hidden until GSAP takes over (avoids a flash of stacked pages).
+  &:not(:first-child) {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+// Incoming page fills the width (the merch rows run edge to edge).
+.nextPanel {
+  align-self: start;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+// Capability page content (icon, headline, copy).
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// Soft white glow behind the 3D icon (as in the design).
+.icon {
+  display: grid;
+  place-items: center;
+  width: clamp(160px, 20vw, 380px);
+  aspect-ratio: 1;
+  margin-top: 2vw;
+  background: radial-gradient(
+    circle,
+    var(--glow, rgba(255, 255, 255, 0.95)) 0%,
+    color-mix(in srgb, var(--glow, rgba(255, 255, 255, 0.95)) 42%, transparent)
+      40%,
+    transparent 70%
+  );
+}
+
+.iconImg {
+  width: 90%;
+  height: auto;
+}
+
+.title {
+  margin-top: 0.5vw;
+  font-family: var(--font-serif), serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(44px, 6.4vw, 124px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.body {
+  width: min(52vw, 1000px);
+  margin-top: 2.4vw;
+  font-family: var(--font-figtree), sans-serif;
+  font-size: clamp(13px, 1.2vw, 22px);
+  line-height: 1.6;
+  color: #777;
+}
+
+.centerPanel {
+  align-self: center;
+}
+
+// Text-only intro page (e.g. "Agentic commerce").
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.introTitle {
+  font-family: var(--font-serif), serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(36px, 3.9vw, 76px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.introBody {
+  width: min(36vw, 640px);
+  min-width: 280px;
+  margin-top: 1.6vw;
+  font-family: var(--font-figtree), sans-serif;
+  font-size: clamp(13px, 1.2vw, 22px);
+  line-height: 1.6;
+  color: #777;
+}
+
+// Phones: centre one in flow, side ones stacked behind it until they spread out.
+.phones {
+  position: relative;
+  width: var(--phone-w);
+  margin-top: 1.6vw;
+}
+
+.phoneMain {
+  position: relative;
+  z-index: 1;
+}
+
+.phoneSide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.phoneImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+// Pages that are fully hidden stop their marquees / slides (saves GPU memory,
+// which otherwise can leave the screen blank while scrolling fast).
+.panel[data-off] * {
+  animation-play-state: paused !important;
+  will-change: auto !important;
+}
+
+// AI tools grid: icons are wider than their column (transparent padding), centred.
+.tools {
+  display: grid;
+  grid-template-columns: repeat(4, var(--col));
+  justify-items: center;
+  row-gap: 1vw;
+  margin-top: 2.4vw;
+  list-style: none;
+}
+
+.tool {
+  display: flex;
+  justify-content: center;
+  width: var(--col);
+}
+
+.toolImg {
+  flex: none;
+  height: auto;
+}

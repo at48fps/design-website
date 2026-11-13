@@ -1,0 +1,197 @@
+@use "abstracts" as *;
+
+// One page: ends just below the copy so the next section follows with no gap.
+.section {
+  position: relative;
+  width: 100%;
+  height: max(100svh, 62vw);
+  overflow: hidden;
+  background: var(--color-page, #ededed);
+  color: #1a1a1a;
+}
+
+// Quilt fades to white; multiply turns that white into the page grey (no seam).
+.quilt {
+  display: block;
+  width: 100%;
+  height: auto;
+  mix-blend-mode: multiply;
+  // Quilt fades out behind the radio, as in the design.
+  mask-image: linear-gradient(to bottom, #000 0, #000 21vw, transparent 31vw);
+}
+
+// Layer over the quilt; children are placed in vw from the design.
+.stage {
+  position: absolute;
+  inset: 0;
+}
+
+.bubble {
+  position: absolute;
+  translate: var(--ox) var(--oy);
+  animation: float var(--float-duration) ease-in-out var(--float-delay) infinite;
+  will-change: transform;
+}
+
+.bubbleImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, calc(var(--float-range) * -1), 0) rotate(2deg);
+  }
+}
+
+// Contact shadow on the page: stays put, shrinks and fades while the bubble rises.
+.shadow {
+  position: absolute;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(0, 0, 0, 1),
+    rgba(0, 0, 0, 0.45) 55%,
+    transparent
+  );
+  filter: blur(8px);
+  opacity: var(--shadow-opacity);
+  animation: shadow var(--float-duration) ease-in-out var(--float-delay)
+    infinite;
+  pointer-events: none;
+}
+
+@keyframes shadow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: var(--shadow-opacity);
+  }
+  50% {
+    transform: scale(0.82);
+    opacity: calc(var(--shadow-opacity) * 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble,
+  .shadow {
+    animation: none;
+  }
+}
+
+.radio {
+  position: absolute;
+  left: 50%;
+  height: auto;
+  translate: -50% 0;
+}
+
+.copy {
+  position: absolute;
+  left: 50%;
+  width: min(56vw, 900px);
+  translate: -50% 0;
+  text-align: center;
+}
+
+.eyebrow {
+  font-family: var(--font-figtree), sans-serif;
+  font-weight: 500;
+  font-size: clamp(14px, 1.55vw, 28px);
+  color: #1a1a1a;
+}
+
+.title {
+  margin-top: 0.6vw;
+  font-family: var(--font-serif), serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(44px, 7.4vw, 140px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+}
+
+.body {
+  margin: 3.4vw auto 0;
+  max-width: 50vw;
+  font-family: var(--font-figtree), sans-serif;
+  font-weight: 400;
+  font-size: clamp(13px, 1.3vw, 22px);
+  line-height: 1.55;
+  color: #6b6b6b;
+}
+
+// Pushed down by TearHero (--push) so a blank gap stays between the torn edge and the assets.
+.stage {
+  transform: translate3d(0, var(--push, 0px), 0);
+}
+
+// "Truly levelled up" layer: plain page background, shown by TearHero after the film zooms out.
+.levelled {
+  visibility: hidden;
+  opacity: 0;
+  background: var(--color-page, #ededed);
+  transform: none;
+  will-change: opacity, transform;
+}
+
+.live {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.22em 0.55em 0.22em 0.4em;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #f7f7f7 0%, #e4e4e4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  font-family: var(--font-serif), serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(22px, 3.4vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #111;
+  white-space: nowrap;
+}
+
+// Glossy red sphere.
+.liveDot {
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #ff8a80 0%,
+    #e5201b 38%,
+    #a40d0a 100%
+  );
+  box-shadow: 0 0.06em 0.12em rgba(120, 0, 0, 0.35);
+}
+
+// Brand film card; TearHero animates its box to full screen and back out.
+.film {
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+  background: #000;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+.filmImg {
+  object-fit: cover;
+}

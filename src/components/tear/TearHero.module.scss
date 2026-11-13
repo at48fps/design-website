@@ -1,0 +1,54 @@
+@use "abstracts" as *;
+
+.stage {
+  position: relative;
+  width: 100%;
+  background: var(--color-page, #ededed);
+}
+
+.lower {
+  position: relative;
+  // Never shorter than the viewport, so the pinned frame is always covered.
+  min-height: 100svh;
+  will-change: transform;
+}
+
+%viewport {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 100svh;
+}
+
+.banner {
+  @extend %viewport;
+  z-index: 1;
+  overflow: hidden;
+  background: #060606;
+}
+
+// Cover, top-aligned, top cropped by --shift-up: same placement as coverTop() in the shader.
+.bannerFrame {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: max(
+    100%,
+    100svh * (1 + var(--travel)) * var(--img-ratio) / (1 - var(--shift-up))
+  );
+  aspect-ratio: var(--img-ratio);
+  transform: translate(-50%, calc(var(--shift-up) * -100%));
+}
+
+.bannerImg {
+  object-fit: fill;
+}
+
+.gl {
+  @extend %viewport;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
