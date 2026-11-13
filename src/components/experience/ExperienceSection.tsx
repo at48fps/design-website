@@ -104,7 +104,7 @@ export function ExperienceSection({ quilt }: Props) {
           data-film-fade
         >
           <span className={styles.liveDot} aria-hidden />
-          LIVE NOW
+          Live Hai
         </p>
 
         <div
