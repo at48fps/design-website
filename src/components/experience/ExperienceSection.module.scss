@@ -87,17 +87,16 @@
 }
 
 .radio {
-  position: absolute;
-  left: 50%;
+  position: relative;
+  display: block;
   height: auto;
-  translate: -50% 0;
+  margin: 0 auto;
 }
 
 .copy {
-  position: absolute;
-  left: 50%;
+  position: relative;
   width: min(56vw, 900px);
-  translate: -50% 0;
+  margin-inline: auto;
   text-align: center;
 }
 
@@ -141,6 +140,15 @@
   background: var(--color-page, #ededed);
   transform: none;
   will-change: opacity, transform;
+}
+
+// Centred in the visible screen (the section can be taller than the viewport).
+.levelledContent {
+  position: absolute;
+  left: 0;
+  top: 50svh;
+  width: 100%;
+  translate: 0 -50%;
 }
 
 .live {

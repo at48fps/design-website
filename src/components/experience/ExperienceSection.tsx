@@ -28,6 +28,8 @@ export function ExperienceSection({ quilt }: Props) {
 
       {/* "Truly levelled up" screen: hidden until the film card zooms out. */}
       <div className={`${styles.stage} ${styles.levelled}`} data-levelled>
+        {/* Radio + copy in flow, centred in the screen; bubbles are placed relative to the radio top. */}
+        <div className={styles.levelledContent}>
         {cfg.bubbles.map((b) => {
           const width = (b.svgW / cfg.svgBubbleDiameter) * cfg.bubbleSize;
           const d = cfg.bubbleSize;
@@ -39,7 +41,7 @@ export function ExperienceSection({ quilt }: Props) {
           };
           const shadowStyle = {
             left: `${b.x + d * sh.offsetX}vw`,
-            top: `${b.y + d * sh.offsetY}vw`,
+            top: `${b.y - cfg.radio.top + d * sh.offsetY}vw`,
             width: `${d * sh.width}vw`,
             height: `${d * sh.height}vw`,
             "--shadow-opacity": sh.opacity,
@@ -47,7 +49,7 @@ export function ExperienceSection({ quilt }: Props) {
           } as CSSProperties;
           const style = {
             left: `${b.x}vw`,
-            top: `${b.y}vw`,
+            top: `${b.y - cfg.radio.top}vw`,
             width: `${width}vw`,
             "--ox": `${(-b.cx / b.svgW) * 100}%`,
             "--oy": `${(-b.cy / b.svgH) * 100}%`,
@@ -78,10 +80,16 @@ export function ExperienceSection({ quilt }: Props) {
           sizes={`${cfg.radio.width}vw`}
           quality={100}
           className={styles.radio}
-          style={{ width: `${cfg.radio.width}vw`, top: `${cfg.radio.top}vw` }}
+          style={{ width: `${cfg.radio.width}vw` }}
         />
 
-        <div className={styles.copy} style={{ top: `${cfg.textTop}vw` }}>
+        <div
+          className={styles.copy}
+          style={{
+            // Same overlap with the radio as in the design.
+            marginTop: `${cfg.textTop - cfg.radio.top - (cfg.radio.width * cfg.radio.h) / cfg.radio.w}vw`,
+          }}
+        >
           <p className={styles.eyebrow}>Crafting an Experience</p>
           <h2 id="experience-title" className={styles.title}>
             Truly levelled up
@@ -93,6 +101,7 @@ export function ExperienceSection({ quilt }: Props) {
             ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
             tempor incididunt ut labore
           </p>
+        </div>
         </div>
       </div>
 

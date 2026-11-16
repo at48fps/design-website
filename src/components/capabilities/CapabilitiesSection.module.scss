@@ -69,16 +69,31 @@ $muted: #9b9b9b;
 
 // All pages share one grid cell, so the section is as tall as the tallest page.
 .panels {
+  // Height of the soft fade at the top edge.
+  --fade: clamp(48px, 5vw, 96px);
   display: grid;
   // Clips pages sliding up under the tab row.
   overflow: hidden;
-  margin-top: 0.5vw;
+  // Starts under the tab row (padding keeps the pages where they were), so content
+  // scrolling up dissolves into the page colour instead of hitting a hard edge.
+  margin-top: calc(0.5vw - var(--fade));
+  padding-top: var(--fade);
+  // Hidden behind the tab labels, then fades in just below them.
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--fade) * 0.8),
+    #000 calc(var(--fade) * 2.2)
+  );
   grid-template-columns: minmax(0, 1fr);
+  // Fills the screen under the tab row so every page is centred in that space.
+  flex: 1 1 auto;
   width: 100%;
 }
 
 .panel {
   grid-area: 1 / 1;
+  align-self: center;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -92,7 +107,6 @@ $muted: #9b9b9b;
 
 // Incoming page fills the width (the merch rows run edge to edge).
 .nextPanel {
-  align-self: start;
   align-items: stretch;
   width: 100%;
   min-width: 0;
@@ -111,7 +125,9 @@ $muted: #9b9b9b;
   place-items: center;
   width: clamp(160px, 20vw, 380px);
   aspect-ratio: 1;
-  margin-top: 2vw;
+  // The icon art has empty space above it; pulling the box up makes the
+  // visible icon + headline + copy look centred under the tab row.
+  margin-top: -1.6vw;
   background: radial-gradient(
     circle,
     var(--glow, rgba(255, 255, 255, 0.95)) 0%,
@@ -179,7 +195,10 @@ $muted: #9b9b9b;
 .phones {
   position: relative;
   width: var(--phone-w);
-  margin-top: 1.6vw;
+  // The phone PNG has transparent padding + a drop shadow (top 40px, bottom 248px
+  // of 1204px width). Trim it from the layout box so centring uses the phone body.
+  margin-top: calc(1.6vw - var(--phone-w) * 0.033);
+  margin-bottom: calc(var(--phone-w) * -0.206);
 }
 
 .phoneMain {
