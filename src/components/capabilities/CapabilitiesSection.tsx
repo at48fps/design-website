@@ -54,11 +54,13 @@ export function CapabilitiesSection({ steps }: Props) {
       };
 
       gsap.set(panels.slice(1), { autoAlpha: 0 });
-      gsap.set(fills, { scaleX: (i: number) => (i === 0 ? cfg.lineFill : 0) });
+      gsap.set(fills, { scaleX: 0 });
 
       // Each step is 1 long: hold, then the change.
       const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
       const tabChanges: { at: number; tab: number }[] = [];
+      // Where each tab's pages start on the timeline (tab 0 starts at 0).
+      const tabStarts: { at: number; tab: number }[] = [{ at: 0, tab: 0 }];
 
       let cursor = 0; // timeline position; each page change (and each spread) takes 1
       steps.forEach((step, i) => {
@@ -132,11 +134,7 @@ export function CapabilitiesSection({ steps }: Props) {
         }
 
         if (step.tab !== undefined && step.tab > 0) {
-          tl.to(
-            fills[step.tab - 1],
-            { scaleX: 1, duration: slide, ease: "none" },
-            at,
-          );
+          tabStarts.push({ at, tab: step.tab });
           tabChanges.push({ at: at + slide / 2, tab: step.tab });
         }
 
@@ -162,6 +160,21 @@ export function CapabilitiesSection({ steps }: Props) {
         }
       });
       const length = cursor;
+
+      // Progress line after each tab fills steadily while you scroll through that
+      // tab's pages: empty on its first page, full when the next tab's pages begin
+      // (or at the end of the section for the last tab).
+      tabStarts.forEach(({ at, tab }, k) => {
+        const fill = fills[tab];
+        if (!fill) return;
+        const end = tabStarts[k + 1]?.at ?? length;
+        tl.fromTo(
+          fill,
+          { scaleX: 0 },
+          { scaleX: 1, duration: end - at, ease: "none", immediateRender: false },
+          at,
+        );
+      });
 
       // Flag pages that are fully hidden so CSS can pause their animations.
       const markHidden = () => {

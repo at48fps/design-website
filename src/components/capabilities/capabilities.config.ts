@@ -22,9 +22,7 @@ const LOREM =
 
 export const capabilitiesConfig = {
   /** Tab row labels. */
-  tabs: ["Visuals", "Ai", "Design system", "Content"],
-  /** How much of the line after "Visuals" is filled at the start (0–1). */
-  lineFill: 0.4,
+  tabs: ["Visuals", "AI", "Design system", "Content"],
 
   visual: {
     title: "Visual design",
