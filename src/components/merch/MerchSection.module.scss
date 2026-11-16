@@ -25,10 +25,10 @@ $ink: #1a1a1a;
 }
 
 .title {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-serif-bold-extratall), serif;
   font-style: italic;
-  font-weight: 400;
-  font-size: clamp(36px, 3.9vw, 76px);
+  font-weight: 700;
+  font-size: 48px;
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -38,8 +38,8 @@ $ink: #1a1a1a;
   min-width: 280px;
   margin-top: 1.6vw;
   font-family: var(--font-figtree), sans-serif;
-  font-size: clamp(13px, 1.2vw, 22px);
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.4;
   color: #777;
 }
 
