@@ -110,10 +110,10 @@
 
 .title {
   margin-top: 0.6vw;
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-serif-bold), serif;
   font-style: italic;
-  font-weight: 400;
-  font-size: clamp(44px, 7.4vw, 140px);
+  font-weight: 700;
+  font-size: 48px;
   line-height: 1;
   letter-spacing: -0.02em;
   color: #1a1a1a;
@@ -124,8 +124,8 @@
   max-width: 50vw;
   font-family: var(--font-figtree), sans-serif;
   font-weight: 400;
-  font-size: clamp(13px, 1.3vw, 22px);
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.4;
   color: #6b6b6b;
 }
 

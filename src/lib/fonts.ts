@@ -20,3 +20,21 @@ export const awesomeSerif = localFont({
   variable: "--font-serif",
   display: "swap",
 });
+
+/** Display serif italic, bold tall cut, for section headlines. */
+export const awesomeSerifBold = localFont({
+  src: "../../font/awesomeserifitalic_boldtall.otf",
+  weight: "700",
+  style: "italic",
+  variable: "--font-serif-bold",
+  display: "swap",
+});
+
+/** Display serif italic, bold extra-tall cut, for smaller section headlines. */
+export const awesomeSerifBoldExtraTall = localFont({
+  src: "../../font/awesomeserifitalic_boldexratall.otf",
+  weight: "700",
+  style: "italic",
+  variable: "--font-serif-bold-extratall",
+  display: "swap",
+});

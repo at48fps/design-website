@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { SiteJsonLd } from "@/components/seo/JsonLd";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { site } from "@/lib/site";
-import { awesomeSerif, figtree } from "@/lib/fonts";
+import { awesomeSerif, awesomeSerifBold, awesomeSerifBoldExtraTall, figtree } from "@/lib/fonts";
 import "@/styles/globals.scss";
 
 export const metadata: Metadata = {
@@ -54,7 +54,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang={site.language} className={`${figtree.variable} ${awesomeSerif.variable}`}>
+    <html lang={site.language} className={`${figtree.variable} ${awesomeSerif.variable} ${awesomeSerifBold.variable} ${awesomeSerifBoldExtraTall.variable}`}>
       <body>
         <SiteJsonLd />
         <SmoothScroll>{children}</SmoothScroll>

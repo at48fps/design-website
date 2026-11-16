@@ -41,8 +41,9 @@ $muted: #9b9b9b;
   padding: 0.4em 0;
   font-family: var(--font-figtree), sans-serif;
   font-weight: 400;
-  font-size: clamp(14px, 1.5vw, 28px);
-  color: $muted;
+  font-size: clamp(11px, 1.5vw, 18px);
+  color: $muted;  
+  letter-spacing: -0.02em;
 
   &[data-active="true"] {
     color: $ink;
@@ -127,10 +128,10 @@ $muted: #9b9b9b;
 
 .title {
   margin-top: 0.5vw;
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-serif-bold), serif;
   font-style: italic;
-  font-weight: 400;
-  font-size: clamp(44px, 6.4vw, 124px);
+  font-weight: 700;
+  font-size: 85px;
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -139,8 +140,8 @@ $muted: #9b9b9b;
   width: min(52vw, 1000px);
   margin-top: 2.4vw;
   font-family: var(--font-figtree), sans-serif;
-  font-size: clamp(13px, 1.2vw, 22px);
-  line-height: 1.6;
+  font-size: 18px;
+  line-height: 1.4;
   color: #777;
 }
 
@@ -156,10 +157,10 @@ $muted: #9b9b9b;
 }
 
 .introTitle {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-serif-bold-extratall), serif;
   font-style: italic;
-  font-weight: 400;
-  font-size: clamp(36px, 3.9vw, 76px);
+  font-weight: 700;
+  font-size: 48px;
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -169,8 +170,8 @@ $muted: #9b9b9b;
   min-width: 280px;
   margin-top: 1.6vw;
   font-family: var(--font-figtree), sans-serif;
-  font-size: clamp(13px, 1.2vw, 22px);
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.4;
   color: #777;
 }
 
