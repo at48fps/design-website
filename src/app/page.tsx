@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <main>
       <TearHero />
-      {/* Pinned story: Visual design → merch → illustrations → gallery → AI in design → Agentic commerce → phones (spread) → AI design tools. */}
+      {/* Pinned story: Visual design → merch → illustrations → gallery → AI in design → Agentic commerce → phones (spread) → AI design tools → Design system. */}
       <CapabilitiesSection
         steps={[
           { node: <MerchSection embedded /> },
@@ -34,6 +34,11 @@ export default function Home() {
             spread: true,
           },
           { node: <ToolsPage /> },
+          {
+            node: <CapabilityPage page={capabilitiesConfig.designSystem} />,
+            enter: "up",
+            tab: 2,
+          },
         ]}
       />
     </main>

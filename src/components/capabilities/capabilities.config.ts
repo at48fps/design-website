@@ -37,6 +37,12 @@ export const capabilitiesConfig = {
     glow: "rgba(255, 70, 40, 0.28)",
   } satisfies CapabilityPageData,
 
+  designSystem: {
+    title: "Design system",
+    body: LOREM,
+    icon: { src: "/system-design.svg", w: 271, h: 247 },
+  } satisfies CapabilityPageData,
+
   agentic: {
     title: "Agentic commerce",
     body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud",
