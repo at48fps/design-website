@@ -7,8 +7,6 @@ import { NEW_LAUNCHES_EVENT, NEW_LAUNCHES_HASH } from "./navEvents";
 import styles from "./SiteNav.module.scss";
 
 type NavLink = { label: string; href: string; newTab?: boolean };
-
-/** Links either side of the sticker. */
 const LEFT: NavLink[] = [
   { label: "Features", href: "/features" },
   // Home page scrolls to the brand film card; other pages open home there.
