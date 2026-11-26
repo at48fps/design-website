@@ -1,0 +1,93 @@
+// Coded hero, from the Figma hero frame (1512 × 1215): 1 --u = 1 Figma px.
+// Same fit as the popcorn site: the whole frame fits the screen (width and
+// height), so the wordmark sits a little zoomed out and the painted fill is
+// never upscaled past its source size on common screens.
+.hero {
+  --u: min(calc(100vw / 1512), calc(100svh / 1215));
+  // Centre the visible artwork (pop → Design, ~860 Figma px) vertically.
+  // The 9svh raise centres it optically in the space above the torn paper edge.
+  --lift: max(0px, calc((100svh - var(--u) * 860) / 2 - 9svh));
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #060606;
+  isolation: isolate;
+}
+
+// The Figma gradient, lifted from the design's own render. Kept at its frame size
+// around the artwork (like popcorn) and only stretched when the screen is bigger;
+// never starts below the top edge.
+.plate {
+  --plate-top: min(0px, calc(var(--lift) - var(--u) * 120));
+  position: absolute;
+  left: 50%;
+  top: var(--plate-top);
+  width: max(calc(var(--u) * 1512), 100%);
+  height: max(calc(var(--u) * 1215), calc(100% - var(--plate-top)));
+  transform: translateX(-50%);
+  background: url("/images/hero/plate.webp") center / 100% 100% no-repeat;
+}
+
+// No transform here: a transformed ancestor would cut the blend mode off from the plate.
+.art {
+  position: absolute;
+  left: calc(50% - var(--u) * 756);
+  top: calc(var(--lift) - var(--u) * 120);
+  width: calc(var(--u) * 1512);
+  height: calc(var(--u) * 1215);
+}
+
+.pop {
+  position: absolute;
+  max-width: none;
+  left: calc(var(--u) * 427.8);
+  top: calc(var(--u) * 205.2);
+  width: calc(var(--u) * 673.06);
+  height: calc(var(--u) * 397);
+}
+
+.design {
+  position: absolute;
+  left: calc(var(--u) * 126.69);
+  top: calc(var(--u) * 447.28);
+  width: calc(var(--u) * 1272.87);
+  height: calc(var(--u) * 403.37);
+  font-family: var(--font-serif-bold-extratall), Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 500.22px;
+  letter-spacing: -15.0066px;
+
+  text {
+    text-rendering: geometricPrecision;
+  }
+}
+
+.pulse {
+  mix-blend-mode: soft-light;
+  // Negative delay starts the loop at its lit part, so the page opens with the glow on.
+  animation: pulse 10.27s cubic-bezier(0.5, 0, 0.5, 1) -2.8s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0;
+  }
+  26.9% {
+    opacity: 0.55;
+  }
+  72% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+    opacity: 0.55;
+  }
+}

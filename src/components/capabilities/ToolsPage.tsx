@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { CSSProperties } from "react";
 import { capabilitiesConfig as cfg } from "./capabilities.config";
 import styles from "./CapabilitiesSection.module.scss";
@@ -14,29 +15,47 @@ export function ToolsPage() {
         className={styles.tools}
         style={{ "--col": `${t.column}vw` } as CSSProperties}
       >
-        {t.rows.flat().map((tool, i) => {
+        {t.icons.map((tool, i) => {
           // PNGs are 3x renders, so design units = pixels / 3.
           const width = (tool.w / 3) * t.scale;
+          const img = (
+            <Image
+              src={tool.src}
+              alt={tool.alt}
+              width={tool.w}
+              height={tool.h}
+              sizes={`${Math.ceil(width)}vw`}
+              quality={90}
+              className={styles.toolImg}
+              style={{ width: `${width}vw` }}
+            />
+          );
           return (
-            <li
-              key={i}
-              className={styles.tool}
-              aria-hidden={i >= t.rows[0].length || undefined}
-            >
-              <Image
-                src={tool.src}
-                alt={i < t.rows[0].length ? tool.alt : ""}
-                width={tool.w}
-                height={tool.h}
-                sizes={`${Math.ceil(width)}vw`}
-                quality={90}
-                className={styles.toolImg}
-                style={{ width: `${width}vw` }}
-              />
+            <li key={i} className={styles.tool}>
+              {tool.slug ? (
+                <Link
+                  href={`/tool/${tool.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.toolLink}
+                >
+                  {img}
+                </Link>
+              ) : (
+                img
+              )}
             </li>
           );
         })}
       </ul>
+      <a
+        href={t.seeMore.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.seeMore}
+      >
+        {t.seeMore.label}
+      </a>
     </div>
   );
 }

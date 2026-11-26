@@ -19,10 +19,18 @@ export type CapabilityStep = {
   /** Centre the page vertically in the space under the tab row. */
   center?: boolean;
   /**
-   * One more scroll step after this page lands: elements marked
-   * data-spread="-1" / "1" glide out from behind the centre to the left / right.
+   * One more scroll step after this page lands: elements marked data-spread
+   * (start x offset, % of their own width) glide out to their spot, growing and
+   * fading in. Optional data-spread-at / -duration (fractions of the step) and
+   * data-spread-tilt (start turn in degrees, tweened as the --ry CSS variable).
    */
   spread?: boolean;
+  /**
+   * Extra scroll (in steps) after this page lands, while it stays on screen.
+   * Elements marked data-scrub get a "scrub" CustomEvent with progress 0..1
+   * (event.detail) as you scroll through it (e.g. the film strip).
+   */
+  scrub?: number;
 };
 
 type Props = { steps: CapabilityStep[] };
@@ -103,7 +111,9 @@ export function CapabilitiesSection({ steps }: Props) {
             .fromTo(
               incoming,
               { y: () => height(), autoAlpha: 1 },
-              { y: 0, duration: slide, immediateRender: false },
+              // autoAlpha also in the end values: with only a start value, a fast
+              // scroll could land past the tween with the page left hidden.
+              { y: 0, autoAlpha: 1, duration: slide, immediateRender: false },
               at,
             );
         } else {
@@ -141,20 +151,64 @@ export function CapabilitiesSection({ steps }: Props) {
         if (step.spread) {
           const spreadAt = cursor + cfg.hold;
           cursor += 1;
+          const { startScale, fade } = cfg.phones;
           incoming
             .querySelectorAll<HTMLElement>("[data-spread]")
             .forEach((el) => {
-              const dir = Number(el.dataset.spread) || 0;
+              // Start offset as a share of the element's own width (%).
+              const from = Number(el.dataset.spread) || 0;
+              const at = spreadAt + slide * (Number(el.dataset.spreadAt) || 0);
+              const duration =
+                slide * (Number(el.dataset.spreadDuration) || 1);
+              // Start turn in degrees, as the --ry CSS variable (3D phones read it).
+              const tilt = Number(el.dataset.spreadTilt) || 0;
+              // Slides out from behind the centre phone, growing and turning flat.
               tl.fromTo(
                 el,
-                { x: 0, autoAlpha: 0 },
+                { xPercent: from, scale: startScale, "--ry": tilt },
                 {
-                  x: `${dir * cfg.spreadDistance}vw`,
-                  autoAlpha: 1,
-                  duration: slide,
+                  xPercent: 0,
+                  scale: 1,
+                  "--ry": 0,
+                  duration,
+                  ease: "power3.out",
                   immediateRender: true,
                 },
-                spreadAt,
+                at,
+              ).fromTo(
+                el,
+                { autoAlpha: 0 },
+                {
+                  autoAlpha: 1,
+                  duration: duration * fade,
+                  ease: "none",
+                  immediateRender: true,
+                },
+                at,
+              );
+            });
+        }
+
+        if (step.scrub) {
+          // Starts as soon as the page has landed, so the strip never sits still.
+          const scrubAt = cursor;
+          cursor += step.scrub;
+          incoming
+            .querySelectorAll<HTMLElement>("[data-scrub]")
+            .forEach((el) => {
+              const state = { p: 0 };
+              tl.fromTo(
+                state,
+                { p: 0 },
+                {
+                  p: 1,
+                  duration: step.scrub,
+                  ease: "none",
+                  immediateRender: false,
+                  onUpdate: () =>
+                    el.dispatchEvent(new CustomEvent("scrub", { detail: state.p })),
+                },
+                scrubAt,
               );
             });
         }

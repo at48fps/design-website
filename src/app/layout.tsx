@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { SiteJsonLd } from "@/components/seo/JsonLd";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
+import { SiteNav } from "@/components/nav/SiteNav";
 import { site } from "@/lib/site";
 import { awesomeSerif, awesomeSerifBold, awesomeSerifBoldExtraTall, figtree } from "@/lib/fonts";
 import "@/styles/globals.scss";
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang={site.language} className={`${figtree.variable} ${awesomeSerif.variable} ${awesomeSerifBold.variable} ${awesomeSerifBoldExtraTall.variable}`}>
       <body>
         <SiteJsonLd />
+        <SiteNav />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>

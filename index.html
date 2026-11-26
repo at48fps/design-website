@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POPgenie — scroll reveal prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,400;6..144,500&family=Figtree:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ececec;
+    --ink:#393939;
+    --ink-soft:#6f6f6f;
+    --line:#bdbdbd;
+    --font:"Google Sans Flex","Google Sans","Figtree",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg)}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+  /* ---------- top nav (static, matches the frame) ---------- */
+  .nav{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;align-items:center;gap:clamp(12px,2.2vw,32px);
+       padding:clamp(22px,4.2vh,44px) clamp(20px,15vw,240px) 0;pointer-events:none}
+  .nav span{font-size:clamp(16px,1.6vw,24px);white-space:nowrap;letter-spacing:-.01em}
+  .nav .muted{color:#a3a3a3}
+  .nav .rule{flex:1;height:1.5px;background:#cfcfcf;position:relative;overflow:hidden}
+  .nav .rule i{position:absolute;inset:0;background:#3d3d3d;transform-origin:left;transform:scaleX(var(--p,0))}
+
+  /* ---------- scroll section ---------- */
+  #genie{position:relative}
+  .sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+  /* design box = frame region (560,300)→(2464,1840) at 1/2 scale */
+  .box{position:absolute;left:50%;top:54%;width:952px;height:770px;
+       transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:50% 50%}
+  .copy{position:absolute;inset:0;pointer-events:none}
+  .headline{position:absolute;left:393px;top:31px;width:170.5px;will-change:transform,opacity}
+  .body{position:absolute;left:50%;top:111px;width:560px;margin-left:-280px;text-align:center;
+        font-size:20px;line-height:28.6px;letter-spacing:-.012em;color:var(--ink-soft);will-change:transform,opacity}
+
+  .phone{position:absolute;will-change:transform}
+  .move{position:absolute;inset:0;will-change:transform,opacity;perspective:1300px}
+  .tilt{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+  .tilt canvas{position:absolute;inset:0;width:100%;height:100%;display:block;filter:var(--ds)}
+  .flat{position:absolute;left:-30px;top:215px;width:990px;opacity:0;transition:opacity .4s}
+  body.no3d .flat{opacity:1}
+  .shadow{position:absolute;left:20%;right:20%;bottom:8.5%;height:5%;border-radius:50%;
+          background:radial-gradient(closest-side,rgba(0,0,0,.28),rgba(0,0,0,0));filter:blur(6px);
+          transform:translateX(var(--shx,0px))}
+
+  .hint{position:absolute;left:50%;bottom:5vh;transform:translateX(-50%);font-size:13px;letter-spacing:.14em;
+        text-transform:uppercase;color:#9a9a9a;transition:opacity .4s}
+  .hint b{display:block;margin:10px auto 0;width:1px;height:34px;background:linear-gradient(#9a9a9a,transparent);animation:drip 1.6s infinite}
+  @keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  .after{height:80vh;display:grid;place-items:center;color:#a8a8a8;font-size:15px;letter-spacing:.02em}
+
+  /* ---------- tuning panel ---------- */
+  .tune-btn{position:fixed;right:18px;bottom:18px;z-index:40;border:0;border-radius:999px;padding:10px 16px;
+            background:#1c1c1c;color:#f2f2f2;font:500 13px var(--font);cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+  .panel{position:fixed;right:18px;bottom:66px;z-index:40;width:292px;max-height:calc(100vh - 100px);overflow:auto;
+         background:rgba(26,26,26,.94);backdrop-filter:blur(10px);color:#eee;border-radius:16px;padding:16px 16px 12px;
+         font:13px/1.35 var(--font);box-shadow:0 18px 50px rgba(0,0,0,.28);display:none}
+  .panel.open{display:block}
+  .panel h4{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#8d8d8d;margin:12px 0 8px}
+  .panel h4:first-child{margin-top:0}
+  .row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin-bottom:9px}
+  .row label{color:#d6d6d6}
+  .row output{color:#9a9a9a;font-variant-numeric:tabular-nums}
+  .row input[type=range]{grid-column:1/3;width:100%;accent-color:#ff5a3c}
+  .seg{display:flex;gap:6px;margin-bottom:10px}
+  .seg button,.actions button{flex:1;border:1px solid #3a3a3a;background:#232323;color:#ddd;border-radius:8px;padding:7px 8px;font:12px var(--font);cursor:pointer}
+  .seg button.on{background:#ff5a3c;border-color:#ff5a3c;color:#fff}
+  .actions{display:flex;gap:6px;margin-top:6px}
+  .status{margin-top:10px;color:#8d8d8d;font-size:12px;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-hidden="true">
+  <span>Visuals</span><div class="rule"><i style="--p:.64"></i></div>
+  <span>Ai</span><div class="rule"><i id="aiRule"></i></div>
+  <span class="muted">Design system</span>
+</nav>
+
+<section id="genie">
+  <div class="sticky">
+    <div class="box" id="box">
+      <div class="copy">
+        <img class="headline" id="headline" src="assets/popgenie-wordmark.png" alt="POPgenie">
+        <p class="body" id="body">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud</p>
+      </div>
+      <div id="phones"><img class="flat" src="assets/phones-flat.webp" alt="POPgenie on five phones"></div>
+    </div>
+    <div class="hint" id="hint">Scroll<b></b></div>
+  </div>
+</section>
+<div class="after">Next section</div>
+
+<button class="tune-btn" id="tuneBtn">Tune</button>
+<div class="panel" id="panel">
+  <h4>Entrance</h4>
+  <div class="row"><label for="c_centerOffset">Central phone rise offset</label><output></output><input type="range" id="c_centerOffset" min="0" max="400" step="2"></div>
+  <div class="row"><label for="c_textShift">Text travel (from right)</label><output></output><input type="range" id="c_textShift" min="0" max="500" step="5"></div>
+  <div class="row"><label for="c_sideScale">Side phones start scale</label><output></output><input type="range" id="c_sideScale" min="0.7" max="1" step="0.01"></div>
+  <h4>Hold &amp; exit</h4>
+  <div class="row"><label for="c_hold">Hold length (scrolls)</label><output></output><input type="range" id="c_hold" min="0" max="4" step="0.1"></div>
+  <div class="seg" id="exitDir"><button data-v="left">Exit left</button><button data-v="up">Exit up</button></div>
+  <div class="row"><label for="c_exitTravel">Exit travel</label><output></output><input type="range" id="c_exitTravel" min="40" max="600" step="10"></div>
+  <h4>Mouse gravity</h4>
+  <div class="row"><label for="c_tiltMax">Max tilt (°)</label><output></output><input type="range" id="c_tiltMax" min="0" max="30" step="0.5"></div>
+  <div class="row"><label for="c_stiffness">Spring stiffness</label><output></output><input type="range" id="c_stiffness" min="10" max="400" step="5"></div>
+  <div class="row"><label for="c_damping">Spring damping</label><output></output><input type="range" id="c_damping" min="2" max="40" step="0.5"></div>
+  <div class="row"><label for="c_resist">Resistance (soft limit)</label><output></output><input type="range" id="c_resist" min="0.5" max="5" step="0.1"></div>
+  <h4>Scroll feel</h4>
+  <div class="row"><label for="c_smooth">Scroll smoothing</label><output></output><input type="range" id="c_smooth" min="0.02" max="1" step="0.01"></div>
+  <div class="actions"><button id="replay">Replay</button><button id="copy">Copy config</button><button id="reset">Reset</button></div>
+  <div class="status" id="status"></div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+  /* ===================== CONFIG ===================== */
+  const DEFAULTS = {
+    centerOffset: 90,   // px (design units) the central phone starts below its resting place
+    textShift: 160,     // px the headline starts to the right; body travels 1.6× this (parallax)
+    sideScale: 0.92,    // side phones grow from this scale as they slide out
+    hold: 1.5,          // viewport-heights of scroll the full composition stays put
+    exitDir: 'left',    // 'left' continues the text's motion; 'up' lifts it away
+    exitTravel: 220,    // px the headline travels on exit; everything else is a ratio of this
+    tiltMax: 14,        // degrees
+    stiffness: 110,     // spring k
+    damping: 11,        // spring c (lower = more wobble)
+    resist: 1.8,        // tanh gain – higher reaches max tilt sooner
+    smooth: 0.14        // scroll scrub smoothing per frame @60fps (1 = none)
+  };
+  // locked model settings from the studio
+  const MODEL = { thick: 1.3, shade: 0.7, glint: 0.35, glass: 1 };
+  let CFG = {...DEFAULTS};
+  try { Object.assign(CFG, JSON.parse(localStorage.getItem('popgenie-cfg-v2') || '{}')); } catch(e) {}
+
+  /* ===================== PHONES (frame px of the 3024×1902 comp) =====================
+     cx = centre x, top = top edge, s = scale of the 577×1042 model. side = rgb of the walls. */
+  const OX = 560, OY = 300, K = 0.5;
+  const MW = 577, MH = 1042, MCX = 289;            // model image size + centre x
+  const MX = 0.22, MY = 0.14;                       // canvas margin around the phone (room to tilt)
+  const PHONES = [
+    {id:'silver', cx:745,    top:890, s:.7375, z:1, ring:2, side:-1, wall:[0.58,0.58,0.58]},
+    {id:'dark',   cx:2240,   top:890, s:.7375, z:1, ring:2, side: 1, wall:[0.255,0.255,0.255]},
+    {id:'blue',   cx:1075,   top:819, s:.863,  z:2, ring:1, side:-1, wall:[0.498,0.576,0.686]},
+    {id:'green',  cx:1909,   top:819, s:.863,  z:2, ring:1, side: 1, wall:[0.553,0.588,0.424]},
+    {id:'pink',   cx:1492.5, top:748, s:.9954, z:3, ring:0, side: 0, wall:[0.729,0.455,0.675]},
+  ];
+  const CENTER_CX = 1492.5;
+  // cast shadows: the centre phone shadows both neighbours, the inner pair cast outward
+  const DROP = [
+    'drop-shadow(0 18px 26px rgba(40,10,35,.30)) drop-shadow(0 4px 8px rgba(40,10,35,.16))',
+    'drop-shadow(SIDE 14px 22px rgba(20,20,40,.26)) drop-shadow(0 3px 6px rgba(20,20,40,.14))',
+    'drop-shadow(0 10px 18px rgba(20,20,20,.18))'
+  ];
+  const wrap = document.getElementById('phones');
+  PHONES.forEach(p => {
+    const w = MW*p.s, h = MH*p.s;
+    const fx = p.cx - MCX*p.s - MX*w, fy = p.top - MY*h;
+    p.box = {w:w*(1+2*MX), h:h*(1+2*MY)};
+    const el = document.createElement('div');
+    el.className = 'phone';
+    Object.assign(el.style, {left:(fx-OX)*K+'px', top:(fy-OY)*K+'px', width:p.box.w*K+'px', height:p.box.h*K+'px', zIndex:p.z});
+    el.innerHTML = `<div class="move"><div class="shadow"></div><div class="tilt"></div></div>`;
+    el.style.setProperty('--ds', DROP[p.ring].replace('SIDE', (p.side*10)+'px'));
+    wrap.appendChild(el);
+    p.el = el; p.move = el.querySelector('.move'); p.tilt = el.querySelector('.tilt'); p.shadow = el.querySelector('.shadow');
+    p.dx = (CENTER_CX - p.cx) * K;
+    p.strength = [1, .85, .7][p.ring];
+    p.s2 = {rx:0, ry:0, vx:0, vy:0};
+    p.phase = Math.random()*6.28;
+    p.ry0 = 0;
+  });
+
+  /* ===================== TIMELINE (viewport heights of scroll) ===================== */
+  let T = {};
+  function buildTimeline(){
+    T.head   = [0.00, 0.85];
+    T.body   = [0.14, 0.85];
+    T.center = [0.60, 0.90];
+    T.ring1  = [1.20, 0.85];
+    T.ring2  = [1.45, 0.90];
+    T.inEnd  = 2.35;
+    T.exit   = [T.inEnd + CFG.hold, 1.05];
+    T.total  = T.exit[0] + T.exit[1];
+    document.getElementById('genie').style.height = `calc(100vh + ${T.total*100}vh)`;
+  }
+  buildTimeline();
+
+  const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a, v));
+  const seg = (t,[s,l]) => clamp((t - s) / l);
+  const easeOut = x => 1 - Math.pow(1 - x, 3);
+  const easeInOut = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3)/2;
+  const smoothstep = x => x*x*(3 - 2*x);
+
+  /* ===================== LAYOUT SCALE ===================== */
+  const box = document.getElementById('box');
+  let boxScale = 1;
+  function fit(){
+    const vw = innerWidth, vh = innerHeight;
+    let s = Math.min((vw - 24) / 952, (vh - 90) / 790, 1.35);
+    if (vw < 700) s = Math.max(s, vw / 640);
+    boxScale = s;
+    box.style.setProperty('--s', s.toFixed(4));
+    PHONES.forEach(p => p.resize && p.resize());
+  }
+  fit(); addEventListener('resize', fit);
+
+  /* ===================== 3D PHONES =====================
+     Body = the mockup photo projected onto a smooth pebble mesh. At rest it is the mockup;
+     tilting adds lighting change, a glint, and walls in the phone's colour. Screens are separate textures. */
+  async function init3D(){
+    const THREE = await import('three');
+    const { mergeVertices } = await import('three/addons/utils/BufferGeometryUtils.js');
+    const G = await fetch('assets/phone-geo.json').then(r => r.json());
+    const W = G.size[0], H = G.size[1], PAD = 24, U = 1/100;
+    const V = ([x,y]) => new THREE.Vector2((x - G.cx)*U, -(y - H/2)*U);
+
+    let pts = G.inner.map(V); if (THREE.ShapeUtils.isClockWise(pts)) pts.reverse();
+    const BT = MODEL.thick*0.42, DEPTH = MODEL.thick*0.16;
+    let geo = new THREE.ExtrudeGeometry(new THREE.Shape(pts),
+      {depth:DEPTH, bevelEnabled:true, bevelThickness:BT, bevelSize:G.bevel*U, bevelSegments:20, curveSegments:6});
+    geo.translate(0, 0, -DEPTH/2);
+    geo.deleteAttribute('uv'); geo.deleteAttribute('normal');
+    geo = mergeVertices(geo, 1e-4); geo.computeVertexNormals();
+    { const pos = geo.attributes.position, uv = new Float32Array(pos.count*2);
+      for (let i = 0; i < pos.count; i++){
+        const fx = pos.getX(i)/U + G.cx, fy = -pos.getY(i)/U + H/2;
+        uv[i*2] = (fx + PAD)/(W + 2*PAD); uv[i*2+1] = 1 - (fy + PAD)/(H + 2*PAD);
+      }
+      geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); }
+    const ZF = DEPTH/2 + BT;
+
+    const loader = new THREE.TextureLoader();
+    const raw = t => { t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; return t; };
+    const loadTex = src => new Promise((res, rej) => loader.load(src, t => res(raw(t)), undefined, rej));
+    const smask = await loadTex('assets/screenmask.png');
+    const SB = [28, 63, 551, 860], boxAspect = (SB[2]-SB[0])/(SB[3]-SB[1]);
+
+    const vert = `
+      varying vec2 vUv; varying vec3 vN; varying vec3 vNo; varying vec3 vV;
+      void main(){ vUv = uv; vNo = normal; vN = normalize(normalMatrix*normal);
+        vec4 mv = modelViewMatrix*vec4(position,1.); vV = -mv.xyz; gl_Position = projectionMatrix*mv; }`;
+    const frag = `
+      uniform sampler2D map, smask, screenTex; uniform vec3 sideColor;
+      uniform float shade, glint, tiltAmt, glass, flatGlass; uniform vec4 screenBox, fit; uniform vec3 srcSize;
+      varying vec2 vUv; varying vec3 vN; varying vec3 vNo; varying vec3 vV;
+      void main(){
+        vec3 n = normalize(vN), v = normalize(vV), no = normalize(vNo);
+        vec3 L = normalize(vec3(-0.45, 0.75, 0.55));
+        vec3 tex = texture2D(map, vUv).rgb;
+        float d = dot(n, L) - dot(no, L);
+        float m = texture2D(smask, vUv).r;
+        vec2 px = vec2(vUv.x*(srcSize.x + 2.0*srcSize.z) - srcSize.z, (1.0 - vUv.y)*(srcSize.y + 2.0*srcSize.z) - srcSize.z);
+        vec2 su = (px - screenBox.xy) / (screenBox.zw - screenBox.xy);
+        su = su*fit.xy + fit.zw;
+        vec3 content = texture2D(screenTex, vec2(su.x, 1.0 - su.y)).rgb;
+        vec3 scr = clamp(content + (tex - vec3(flatGlass))*glass, 0.0, 1.0);
+        vec3 front = mix(tex * (1.0 + shade * d), scr, m);
+        float lam = 0.55 + 0.45*max(dot(n, L), 0.0);
+        float fres = pow(1.0 - abs(dot(n, v)), 3.0);
+        float sheen = pow(max(dot(reflect(-L, n), v), 0.0), 18.0);
+        float depthFade = smoothstep(-0.9, 0.3, no.z);
+        vec3 side = sideColor * lam * mix(0.78, 1.0, depthFade) + sheen*0.22 + fres*0.12;
+        float f = smoothstep(0.22, 0.55, no.z);
+        vec3 col = mix(side, front, f);
+        vec3 r = reflect(-v, n);
+        float band = exp(-pow((r.x*0.75 + r.y*0.65 + 0.06) * 7.0, 2.0));
+        col += band * glint * tiltAmt * (0.10 + 0.22*m) * f;
+        gl_FragColor = vec4(col, 1.0);
+      }`;
+
+    const CW = W*U*(1+2*MX), CH = H*U*(1+2*MY), FOV = 16;
+    const DIST = (CH/2)/Math.tan(THREE.MathUtils.degToRad(FOV/2));
+
+    await Promise.all(PHONES.map(async p => {
+      const [front, screen] = await Promise.all([loadTex(`assets/front-${p.id}.webp`), loadTex(`assets/screen-${p.id}.webp`)]);
+      const a = screen.image.width / screen.image.height;
+      const fitV = a > boxAspect ? new THREE.Vector4(boxAspect/a, 1, (1 - boxAspect/a)/2, 0)
+                                 : new THREE.Vector4(1, a/boxAspect, 0, (1 - a/boxAspect)/2);
+      const canvas = document.createElement('canvas'); p.tilt.appendChild(canvas);
+      const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
+      renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+      const scene = new THREE.Scene();
+      const mat = new THREE.ShaderMaterial({ vertexShader:vert, fragmentShader:frag, uniforms:{
+        map:{value:front}, smask:{value:smask}, screenTex:{value:screen}, sideColor:{value:new THREE.Color(...p.wall)},
+        shade:{value:MODEL.shade}, glint:{value:MODEL.glint}, glass:{value:MODEL.glass}, tiltAmt:{value:0}, flatGlass:{value:25/255},
+        screenBox:{value:new THREE.Vector4(...SB)}, srcSize:{value:new THREE.Vector3(W,H,PAD)}, fit:{value:fitV} }});
+      const group = new THREE.Group(); group.add(new THREE.Mesh(geo, mat)); scene.add(group);
+      const camera = new THREE.PerspectiveCamera(FOV, CW/CH, 0.5, 300);
+      camera.position.set(0, 0, ZF + DIST); camera.lookAt(0, 0, ZF);
+      p.resize = () => {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2) * boxScale);
+        renderer.setSize(p.box.w*K, p.box.h*K, false); p.dirty = true;
+      };
+      p.resize();
+      p.render = () => {
+        group.rotation.x = THREE.MathUtils.degToRad(p.s2.rx);
+        group.rotation.y = THREE.MathUtils.degToRad(p.s2.ry + p.ry0);
+        mat.uniforms.tiltAmt.value = Math.min(1, Math.hypot(p.s2.rx, p.s2.ry + p.ry0)/6);
+        renderer.render(scene, camera);
+      };
+      p.gl = true; p.dirty = true;
+    }));
+  }
+  init3D().catch(err => { console.warn('3D unavailable, showing the flat layout', err); document.body.classList.add('no3d'); });
+
+  /* ===================== INPUT ===================== */
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pointer = {x:0, y:0, active:false, fine: matchMedia('(pointer:fine)').matches};
+  addEventListener('pointermove', e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; }, {passive:true});
+  document.documentElement.addEventListener('pointerleave', () => pointer.active = false);
+  addEventListener('blur', () => pointer.active = false);
+
+  const section = document.getElementById('genie');
+  const headline = document.getElementById('headline');
+  const body = document.getElementById('body');
+  const hint = document.getElementById('hint');
+  const aiRule = document.getElementById('aiRule');
+  const status = document.getElementById('status');
+  const panel = document.getElementById('panel');
+  const flat = wrap.querySelector('.flat');
+
+  let cur = 0, last = performance.now();
+
+  function frame(now){
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const vh = innerHeight, vw = innerWidth;
+    const target = clamp((scrollY - section.offsetTop) / vh, 0, T.total);
+    const k = reduce ? 1 : 1 - Math.pow(1 - CFG.smooth, dt * 60);
+    cur += (target - cur) * k;
+    if (Math.abs(target - cur) < 1e-4) cur = target;
+    const t = cur;
+
+    const ex = easeInOut(seg(t, T.exit));
+    const dir = CFG.exitDir === 'up' ? [0, -1] : [-1, 0];
+    const travel = reduce ? 0 : CFG.exitTravel;
+    const exitOpacity = 1 - smoothstep(ex);
+
+    // ---- text
+    const h = seg(t, T.head), b = seg(t, T.body);
+    const hx = (1 - easeOut(h)) * CFG.textShift * (reduce ? 0 : 1);
+    const bx = (1 - easeOut(b)) * CFG.textShift * 1.6 * (reduce ? 0 : 1);
+    headline.style.transform = `translate3d(${hx + dir[0]*travel*ex}px, ${dir[1]*travel*ex}px, 0)`;
+    headline.style.opacity = smoothstep(h) * exitOpacity;
+    body.style.transform = `translate3d(${bx + dir[0]*travel*1.45*ex}px, ${dir[1]*travel*1.45*ex}px, 0)`;
+    body.style.opacity = smoothstep(b) * (1 - smoothstep(clamp(ex*1.15)));
+
+    // ---- phones: scroll choreography
+    const exitRatio = [0.62, 0.5, 0.4];
+    const phoneExitOpacity = 1 - smoothstep(clamp((ex - 0.08) / 0.92));
+    PHONES.forEach(p => {
+      let x = 0, y = 0, sc = 1, op = 1, ry0 = 0;
+      if (p.ring === 0){
+        const c = easeOut(seg(t, T.center));
+        y = (1 - c) * CFG.centerOffset * (reduce ? 0 : 1);
+        sc = 0.97 + 0.03 * c;
+        op = smoothstep(seg(t, T.center));
+      } else {
+        const e = easeOut(seg(t, p.ring === 1 ? T.ring1 : T.ring2));
+        x = (1 - e) * p.dx * (reduce ? 0 : 1);
+        sc = CFG.sideScale + (1 - CFG.sideScale) * e;
+        ry0 = (1 - e) * -16 * p.side * (reduce ? 0 : 1);
+        op = clamp(e * 2.5);
+      }
+      const r = exitRatio[p.ring] * travel * ex;
+      x += dir[0] * r; y += dir[1] * r;
+      p.move.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${sc})`;
+      p.move.style.opacity = op * phoneExitOpacity;
+      if (Math.abs(ry0 - p.ry0) > 1e-3){ p.ry0 = ry0; p.dirty = true; }
+      p.visible = op * phoneExitOpacity > 0.001;
+    });
+    if (flat){ const c = smoothstep(seg(t, T.ring2)); flat.style.transform = `translateX(${-travel*0.5*ex}px)`; flat.style.setProperty('opacity', document.body.classList.contains('no3d') ? c*phoneExitOpacity : 0); }
+
+    // ---- mouse gravity: spring toward the cursor, soft-limited (tanh) for the resisting feel
+    PHONES.forEach(p => {
+      let tx = 0, ty = 0;
+      if (!reduce){
+        if (pointer.active && pointer.fine){
+          const rc = p.el.getBoundingClientRect();
+          const cx = rc.left + rc.width/2, cy = rc.top + rc.height/2;
+          const nx = (pointer.x - cx) / (vw * 0.5), ny = (pointer.y - cy) / (vh * 0.5);
+          ty = CFG.tiltMax * p.strength * Math.tanh(nx * CFG.resist);
+          tx = CFG.tiltMax * 0.75 * p.strength * Math.tanh(ny * CFG.resist);
+        } else if (!pointer.fine){
+          ty = Math.sin(now/1000*0.7 + p.phase) * 4 * p.strength;
+          tx = Math.cos(now/1000*0.55 + p.phase) * 2.5 * p.strength;
+        }
+      }
+      const s = p.s2, steps = 3, h2 = dt / steps;
+      for (let i = 0; i < steps; i++){
+        s.vx += (CFG.stiffness * (tx - s.rx) - CFG.damping * s.vx) * h2;
+        s.vy += (CFG.stiffness * (ty - s.ry) - CFG.damping * s.vy) * h2;
+        s.rx += s.vx * h2; s.ry += s.vy * h2;
+      }
+      const moving = Math.abs(s.vx) + Math.abs(s.vy) + Math.abs(tx - s.rx) + Math.abs(ty - s.ry) > 0.002;
+      p.tilt.style.transform = `translate3d(${s.ry*0.3}px, ${s.rx*0.3}px, 0)`;
+      p.shadow.style.setProperty('--shx', (-s.ry * 1.1) + 'px');
+      if (p.gl && p.visible && (moving || p.dirty)){ p.render(); p.dirty = false; }
+    });
+
+    hint.style.opacity = clamp(1 - target * 4);
+    aiRule.style.setProperty('--p', (t / T.total).toFixed(4));
+    if (panel.classList.contains('open')){
+      const phase = t < T.center[0] ? 'text in' : t < T.ring1[0] ? 'centre phone in' : t < T.inEnd ? 'side phones in'
+                  : t < T.exit[0] ? 'hold' : t < T.total ? 'exit' : 'done';
+      status.textContent = `${t.toFixed(2)} / ${T.total.toFixed(2)} screens · ${phase}`;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ===================== TUNING PANEL ===================== */
+  document.getElementById('tuneBtn').onclick = () => panel.classList.toggle('open');
+  const save = () => { try { localStorage.setItem('popgenie-cfg-v2', JSON.stringify(CFG)); } catch(e) {} };
+  const fmt = (k,v) => k==='centerOffset'||k==='textShift'||k==='exitTravel' ? v+' px' : k==='tiltMax' ? v+'°' : k==='hold' ? v+' scr' : v;
+  const inputs = [...panel.querySelectorAll('input[type=range]')];
+  function syncUI(){
+    inputs.forEach(inp => { const key = inp.id.slice(2); inp.value = CFG[key]; inp.previousElementSibling.textContent = fmt(key, CFG[key]); });
+    panel.querySelectorAll('#exitDir button').forEach(b => b.classList.toggle('on', b.dataset.v === CFG.exitDir));
+  }
+  inputs.forEach(inp => inp.addEventListener('input', () => {
+    const key = inp.id.slice(2); CFG[key] = parseFloat(inp.value);
+    inp.previousElementSibling.textContent = fmt(key, CFG[key]);
+    if (key === 'hold') buildTimeline();
+    save();
+  }));
+  panel.querySelectorAll('#exitDir button').forEach(b => b.onclick = () => { CFG.exitDir = b.dataset.v; syncUI(); save(); });
+  document.getElementById('replay').onclick = () => { scrollTo({top:0, behavior:'instant'}); cur = 0; };
+  document.getElementById('reset').onclick = () => { CFG = {...DEFAULTS}; buildTimeline(); syncUI(); save(); };
+  document.getElementById('copy').onclick = async (e) => {
+    const txt = JSON.stringify(CFG, null, 2);
+    try { await navigator.clipboard.writeText(txt); e.target.textContent = 'Copied'; }
+    catch(err){ status.textContent = txt; e.target.textContent = 'See below'; }
+    setTimeout(() => e.target.textContent = 'Copy config', 1400);
+  };
+  syncUI();
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

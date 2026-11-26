@@ -4,6 +4,8 @@ import { IntroPage } from "@/components/capabilities/IntroPage";
 import { PhonesPage } from "@/components/capabilities/PhonesPage";
 import { ToolsPage } from "@/components/capabilities/ToolsPage";
 import { capabilitiesConfig } from "@/components/capabilities/capabilities.config";
+import { FilmStripPage } from "@/components/film/FilmStripPage";
+import { filmConfig } from "@/components/film/film.config";
 import { GallerySection } from "@/components/gallery/GallerySection";
 import { IllustrationsSection } from "@/components/illustrations/IllustrationsSection";
 import { MerchSection } from "@/components/merch/MerchSection";
@@ -13,7 +15,7 @@ export default function Home() {
   return (
     <main>
       <TearHero />
-      {/* Pinned story: Visual design → merch → illustrations → gallery → AI in design → Agentic commerce → phones (spread) → AI design tools → Design system. */}
+      {/* Pinned story: Visual design → merch → illustrations → gallery → AI in design → Agentic commerce → phones (spread) → film strip (scrub) → AI design tools → Design system. */}
       <CapabilitiesSection
         steps={[
           { node: <MerchSection embedded /> },
@@ -32,6 +34,10 @@ export default function Home() {
             node: <PhonesPage {...capabilitiesConfig.agentic} />,
             enter: "lift",
             spread: true,
+          },
+          {
+            node: <FilmStripPage />,
+            scrub: filmConfig.scrollLength,
           },
           { node: <ToolsPage /> },
           {
