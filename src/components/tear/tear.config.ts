@@ -7,15 +7,8 @@
  */
 
 export const tearConfig = {
-  /** Images. w/h are the real pixel sizes of the files. */
+  /** Images. w/h are the real pixel sizes of the files. The hero itself is coded (PopHero.tsx). */
   images: {
-    /** shiftUp: share of the banner height cropped off the top, moves the art up (0–0.3). */
-    banner: {
-      src: "/images/hero/pop-banner.webp",
-      w: 3024,
-      h: 2364,
-      shiftUp: 0.13,
-    },
     quilt: { src: "/images/hero/quilt.webp", w: 2268, h: 3093 },
   },
 

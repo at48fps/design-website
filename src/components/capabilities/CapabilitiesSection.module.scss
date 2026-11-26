@@ -191,32 +191,70 @@ $muted: #9b9b9b;
   color: #777;
 }
 
-// Phones: centre one in flow, side ones stacked behind it until they spread out.
-.phones {
+// POPgenie phones (ported from the prototype). Box = phone bodies edge to edge;
+// each phone's canvas box is larger (room to tilt) and overflows it.
+.genie {
   position: relative;
-  width: var(--phone-w);
-  // The phone PNG has transparent padding + a drop shadow (top 40px, bottom 248px
-  // of 1204px width). Trim it from the layout box so centring uses the phone body.
-  margin-top: calc(1.6vw - var(--phone-w) * 0.033);
-  margin-bottom: calc(var(--phone-w) * -0.206);
+  margin-top: 2.6vw;
 }
 
-.phoneMain {
-  position: relative;
-  z-index: 1;
+.geniePhone {
+  position: absolute;
 }
 
-.phoneSide {
+.genieMove {
   position: absolute;
   inset: 0;
+  will-change: transform, opacity;
+}
+
+// Side phones stay hidden behind the centre one until they spread out.
+.genieSide {
   opacity: 0;
   visibility: hidden;
 }
 
-.phoneImg {
-  display: block;
-  width: 100%;
+.genieTilt {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: var(--ds);
+  }
+}
+
+.genieShadow {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 8.5%;
+  height: 5%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0));
+  filter: blur(6px);
+  transform: translateX(var(--shx, 0px));
+  opacity: 0;
+  transition: opacity 0.4s;
+
+  .genie[data-ready] & {
+    opacity: 1;
+  }
+}
+
+.genieFlat {
+  position: absolute;
   height: auto;
+  pointer-events: none;
+}
+
+.genie[data-flat] .genieMove {
+  display: none;
 }
 
 // Pages that are fully hidden stop their marquees / slides (saves GPU memory,
@@ -244,5 +282,33 @@ $muted: #9b9b9b;
 
 .toolImg {
   flex: none;
+  // Reset's max-width:100% shrinks unlinked icons; align-self stops flex stretching height.
+  max-width: none;
   height: auto;
+  align-self: flex-start;
+}
+
+.seeMore {
+  margin-top: 2vw;
+  font-family: var(--font-figtree), sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #111;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.6;
+  }
+}
+
+.toolLink {
+  display: flex;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.22, 1.4, 0.36, 1);
+
+  &:hover {
+    transform: scale(1.04);
+  }
 }

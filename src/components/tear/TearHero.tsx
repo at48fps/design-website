@@ -1,17 +1,24 @@
 "use client";
 
-import Image from "next/image";
 import { ExperienceSection } from "@/components/experience/ExperienceSection";
 import { experienceConfig } from "@/components/experience/experience.config";
-import { useRef } from "react";
+import { useLenis } from "lenis/react";
+import { useEffect, useRef } from "react";
+import { NEW_LAUNCHES_EVENT, NEW_LAUNCHES_HASH } from "@/components/nav/navEvents";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { PopHero } from "./PopHero";
 import { progressFromTear, tearConfig } from "./tear.config";
-import { TearRenderer } from "./TearRenderer";
+import { heroClipPath } from "./tearEdge";
+import { bannerOffset, TearRenderer } from "./TearRenderer";
 import styles from "./TearHero.module.scss";
 
+/** Film timeline time where the grown card sits centred (step 1 ends at 0.35). */
+const NEW_LAUNCHES_FILM_TIME = 0.35;
+
 /**
- * First section: the pop Design banner, torn away on scroll with the
- * paper-tear shader to reveal the quilted section underneath.
+ * First section: the coded pop Design hero (PopHero), torn away on scroll with the
+ * paper-tear shader to reveal the quilted section underneath. The shader draws only
+ * the paper; the hero is DOM below it, clipped along the same torn contour.
  * Scrolling back up reverses the tear. Tune everything in tear.config.ts.
  * After the tear the pin continues: the brand film card grows to full screen,
  * zooms out and fades, revealing "Truly levelled up" (experience.config.ts → film).
@@ -20,13 +27,48 @@ export function TearHero() {
   const { images, layout, motion } = tearConfig;
   const stageRef = useRef<HTMLElement>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
   const glRef = useRef<HTMLDivElement>(null);
   const lowerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<ScrollTrigger | null>(null);
+  const lenis = useLenis();
+
+  // Nav "New Launches": scroll to where the brand film card has grown to almost
+  // full width, centred on screen (end of film step 1, before it fills the screen).
+  const filmRef = useRef<gsap.core.Timeline | null>(null);
+  useEffect(() => {
+    if (!lenis) return;
+    const go = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const film = filmRef.current;
+      const filmShare =
+        film && film.duration() > 0
+          ? (experienceConfig.film.scrollLength * NEW_LAUNCHES_FILM_TIME) / film.duration()
+          : 0;
+      lenis.scrollTo(trigger.start + window.innerHeight * (layout.pinLength + filmShare), {
+        duration: 1.6,
+        force: true,
+      });
+    };
+    window.addEventListener(NEW_LAUNCHES_EVENT, go);
+    // Arrived from another page via /#new-launches: wait for the pins to measure.
+    let timer = 0;
+    if (window.location.hash === `#${NEW_LAUNCHES_HASH}`) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+      timer = window.setTimeout(go, 400);
+    }
+    return () => {
+      window.removeEventListener(NEW_LAUNCHES_EVENT, go);
+      window.clearTimeout(timer);
+    };
+  }, [lenis, layout.pinLength]);
 
   useGSAP(
     () => {
       const stage = stageRef.current!;
       const banner = bannerRef.current!;
+      const hero = heroRef.current!;
       const gl = glRef.current!;
       const lower = lowerRef.current!;
 
@@ -206,12 +248,26 @@ export function TearHero() {
             : Math.max(0, edgeY + motion.assetsGap * vh - (rise + assetsTop));
           lower.style.setProperty("--push", `${push.toFixed(2)}px`);
           gl.style.visibility = done ? "hidden" : "visible";
-          banner.style.visibility = "hidden";
-          if (!done) renderer.render(tear, start, progress, time);
+          banner.style.visibility = done ? "hidden" : "visible";
+          if (!done) {
+            // Hero drifts up with the tear and is cut along the paper's torn edge.
+            hero.style.transform = `translate3d(0, ${(-bannerOffset(tear, start) * vh).toFixed(2)}px, 0)`;
+            banner.style.clipPath = heroClipPath(
+              gl.clientWidth || window.innerWidth,
+              vh,
+              tear,
+              progress,
+              time,
+              tearConfig,
+            );
+            renderer.render(tear, start, progress, time);
+          }
         } else {
           // WebGL not ready / unsupported: simple fade so the section still works.
           banner.style.visibility = done ? "hidden" : "visible";
           banner.style.opacity = String(1 - current);
+          banner.style.clipPath = "";
+          hero.style.transform = "";
           lower.style.transform = "";
           lower.style.setProperty("--push", "0px");
         }
@@ -244,16 +300,8 @@ export function TearHero() {
 
       try {
         renderer = new TearRenderer(gl);
-        renderer
-          .load(images.banner.src)
-          .then(() => {
-            ready = true;
-            dirty = true;
-          })
-          .catch(() => {
-            renderer?.dispose();
-            renderer = null;
-          });
+        ready = true;
+        dirty = true;
       } catch {
         renderer = null;
       }
@@ -288,6 +336,9 @@ export function TearHero() {
         },
       });
 
+      triggerRef.current = trigger;
+      filmRef.current = card ? filmTl : null;
+
       // The pin length changes the page height: re-measure every other trigger.
       const refreshId = requestAnimationFrame(() => ScrollTrigger.refresh());
 
@@ -295,6 +346,8 @@ export function TearHero() {
         cancelAnimationFrame(refreshId);
         gsap.ticker.remove(tick);
         trigger.kill();
+        triggerRef.current = null;
+        filmRef.current = null;
         filmTl.kill();
         renderer?.dispose();
       };
@@ -317,28 +370,10 @@ export function TearHero() {
         <ExperienceSection quilt={images.quilt} />
       </div>
 
-      {/* Banner as a real image for first paint, SEO and no-WebGL fallback. */}
-      <div
-        ref={bannerRef}
-        className={styles.banner}
-        style={
-          {
-            "--img-ratio": images.banner.w / images.banner.h,
-            "--shift-up": images.banner.shiftUp,
-            "--travel": motion.bannerTravel,
-          } as React.CSSProperties
-        }
-      >
-        <div className={styles.bannerFrame}>
-          <Image
-            src={images.banner.src}
-            alt="pop Design"
-            fill
-            priority
-            sizes="(max-aspect-ratio: 1/1) 300vh, 100vw"
-            quality={100}
-            className={styles.bannerImg}
-          />
+      {/* Coded hero: DOM under the transparent tear canvas, clipped at the torn edge. */}
+      <div ref={bannerRef} className={styles.banner}>
+        <div ref={heroRef} className={styles.heroMove}>
+          <PopHero />
         </div>
       </div>
 
